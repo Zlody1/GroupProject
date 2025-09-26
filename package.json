@@ -1,0 +1,15 @@
+{
+  "name": "groupproject",
+  "version": "1.0.0",
+  "description": "DOWNLOAD NODE.JS FROM https://nodejs.org/en/download/",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.9.2"
+  }
+}
