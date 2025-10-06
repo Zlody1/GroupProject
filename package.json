@@ -4,12 +4,14 @@
   "description": "DOWNLOAD NODE.JS FROM https://nodejs.org/en/download/",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "webpack": "^5.102.0"
   }
 }
