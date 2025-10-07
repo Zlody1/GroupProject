@@ -5,13 +5,20 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack",
+    "start": "npm run build && start dist/mainPage.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "copy-webpack-plugin": "^13.0.1",
+    "open": "^10.2.0",
+    "ts-loader": "^9.5.4",
     "typescript": "^5.9.2",
     "webpack": "^5.102.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^6.0.1"
   }
 }
