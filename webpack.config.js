@@ -3,9 +3,9 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
-    mainPage: './src/mainPageScript.ts',
-    bookAppointmentPage: './src/bookAppointmentPageScript.ts',
-    loginPage: './src/loginPageScript.ts',
+    mainPage: './src/typescript/mainPageScript.ts',
+    bookAppointmentPage: './src/typescript/bookAppointmentPageScript.ts',
+    loginPage: './src/typescript/loginPageScript.ts',
   },
   output: {
     filename: '[name].js',
@@ -27,8 +27,7 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'html', to: '.' },
-        { from: 'assets', to: 'assets' },
+        { from: 'src', to: '' }
       ],
     }),
   ],
