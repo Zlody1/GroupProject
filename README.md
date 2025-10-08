@@ -2,13 +2,6 @@
 
 YOU MUST DOWNLOAD NODE.JS FROM https://nodejs.org/en/download/
 
-1.Remove any files in dist folder from git tracking
-
-2.Remove any files in .idea folder from git tracking
-
-3.Remove any files in node_modules folder from git tracking
-
-
 
 ===================
 
@@ -25,3 +18,7 @@ npm install | install packages from package.json
 npm init -y  | initialize nodejs project
 
 npm install <package-name> | use npmjs.com to get detail
+
+===================
+
+npm run | opens the program in the browser
