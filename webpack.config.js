@@ -27,10 +27,17 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'src', to: '' }
+        { from: 'src/html', to: 'html' },
+        { from: 'src/assets', to: 'assets', noErrorOnMissing: true }
       ],
     }),
   ],
   mode: 'development',
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    open: true,
+    port: 8080,
+  },
 };
-

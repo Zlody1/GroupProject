@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "start": "npm run build && start dist/html/mainPage.html"
+    "start": "webpack serve --open --static dist --port 8080"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +19,7 @@
     "webpack": "^5.102.0"
   },
   "devDependencies": {
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   }
 }
