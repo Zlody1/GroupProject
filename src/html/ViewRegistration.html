@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .success-icon {
+            text-align: center;
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        .registration-key {
+            background-color: #f0f8f0;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .registration-key-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .registration-key-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        .appointment-details {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .appointment-details h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .info-message {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .qr-code-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .qr-code-section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .qr-code-section img {
+            max-width: 250px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: white;
+        }
+        .qr-code-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Appointment Confirmed!</h1>
+        
+        <div class="registration-key">
+            <div class="registration-key-label">Your Registration Key</div>
+            <div class="registration-key-value" id="registrationKey">Loading...</div>
+        </div>
+
+        <div class="info-message">
+            <strong>Important:</strong> Please save this registration key. You will need it to view or modify your appointment.
+        </div>
+
+        <div class="appointment-details">
+            <h2>Appointment Details</h2>
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value" id="appointmentDate">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value" id="appointmentTime">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Registration Plate:</span>
+                <span class="detail-value" id="registrationPlate">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Vehicle Type:</span>
+                <span class="detail-value" id="vehicleType">-</span>
+            </div>
+        </div>
+
+        <div class="qr-code-section">
+            <h2>QR Code</h2>
+            <img id="qrCode" src="" alt="Appointment QR Code">
+            <div class="qr-code-info">Scan this QR code to access your appointment details</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-secondary" onclick="copyRegistrationKey()">Copy Registration Key</button>
+            <button class="btn-primary" onclick="goToHome()">Return to Home</button>
+        </div>
+    </div>
+
+    <script>
+        // Load registration data from session storage
+        window.addEventListener('DOMContentLoaded', function() {
+            const registrationKey = sessionStorage.getItem('registrationKey');
+            const appointmentData = sessionStorage.getItem('appointmentData');
+
+            if (!registrationKey || !appointmentData) {
+                // Redirect to booking page if no data found
+                window.location.href = 'bookAppointmentPage.html';
+                return;
+            }
+
+            // Display registration key
+            document.getElementById('registrationKey').textContent = registrationKey;
+
+            // Load QR code image from backend
+            document.getElementById('qrCode').src = `http://localhost:5000/api/bookings-qr/${registrationKey}.png`;
+
+            // Parse and display appointment data
+            const data = JSON.parse(appointmentData);
+            document.getElementById('appointmentDate').textContent = formatDate(data.date);
+            document.getElementById('appointmentTime').textContent = data.time;
+            document.getElementById('registrationPlate').textContent = data.registrationPlate;
+            document.getElementById('vehicleType').textContent = capitalizeFirstLetter(data.vehicleType);
+        });
+
+        function formatDate(dateString) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-GB', options);
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function copyRegistrationKey() {
+            const keyText = document.getElementById('registrationKey').textContent;
+            navigator.clipboard.writeText(keyText).then(function() {
+                alert('Registration key copied to clipboard!');
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function goToHome() {
+            // Clear session storage
+            sessionStorage.removeItem('registrationKey');
+            sessionStorage.removeItem('appointmentData');
+            
+            // Navigate to main page
+            window.location.href = 'mainPage.html';
+        }
+    </script>
+</body>
+</html>
