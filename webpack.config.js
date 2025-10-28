@@ -37,7 +37,21 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'),
     },
-    open: true,
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/$/, to: '/html/mainPage.html' },
+      ],
+    },
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    ],
+    open: {
+      target: ['html/mainPage.html'],
+    },
     port: 8080,
   },
 };
