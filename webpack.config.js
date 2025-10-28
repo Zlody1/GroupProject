@@ -27,7 +27,7 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'src/html', to: 'html' },
+        { from: 'src/html', to: '' },
         { from: 'src/assets', to: 'assets', noErrorOnMissing: true }
       ],
     }),
@@ -39,7 +39,7 @@ module.exports = {
     },
     historyApiFallback: {
       rewrites: [
-        { from: /^\/$/, to: '/html/mainPage.html' },
+        { from: /^\/$/, to: '/mainPage.html' },
       ],
     },
     proxy: [
@@ -50,7 +50,7 @@ module.exports = {
       },
     ],
     open: {
-      target: ['html/mainPage.html'],
+      target: ['mainPage.html'],
     },
     port: 8080,
   },

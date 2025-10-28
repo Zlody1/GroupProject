@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 900px;
             margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -105,6 +105,63 @@
         .loading.show {
             display: block;
         }
+        .appointments-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .appointments-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .appointments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .appointments-table th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .appointments-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .appointments-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .vehicle-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .vehicle-regular {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .vehicle-van {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        .no-appointments {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
+        .appointments-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -152,6 +209,13 @@
             <div class="loading" id="loading">Processing your booking...</div>
             <div class="error" id="generalError"></div>
         </form>
+    </div>
+
+    <!-- Existing Appointments Section -->
+    <div class="appointments-section">
+        <h2>Existing Appointments</h2>
+        <div class="appointments-loading" id="appointmentsLoading">Loading appointments...</div>
+        <div id="appointmentsContainer"></div>
     </div>
 
     <script>
@@ -236,6 +300,72 @@
         document.getElementById('registrationPlate').addEventListener('input', function(e) {
             e.target.value = e.target.value.toUpperCase();
         });
+
+        // Load and display all appointments
+        async function loadAppointments() {
+            const loadingDiv = document.getElementById('appointmentsLoading');
+            const container = document.getElementById('appointmentsContainer');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/appointments');
+                const data = await response.json();
+                
+                loadingDiv.style.display = 'none';
+                
+                if (data.success && data.appointments && data.appointments.length > 0) {
+                    // Create table
+                    let tableHTML = `
+                        <table class="appointments-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Registration</th>
+                                    <th>Type</th>
+                                    <th>Key</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.appointments.forEach(appointment => {
+                        const vehicleClass = appointment.vehicleType === 'van' ? 'vehicle-van' : 'vehicle-regular';
+                        const vehicleLabel = appointment.vehicleType.charAt(0).toUpperCase() + appointment.vehicleType.slice(1);
+                        
+                        tableHTML += `
+                            <tr>
+                                <td>${formatDate(appointment.date)}</td>
+                                <td>${appointment.time}</td>
+                                <td><strong>${appointment.registrationPlate}</strong></td>
+                                <td><span class="vehicle-badge ${vehicleClass}">${vehicleLabel}</span></td>
+                                <td><code>${appointment.registrationKey}</code></td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHTML += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    container.innerHTML = tableHTML;
+                } else {
+                    container.innerHTML = '<div class="no-appointments">No appointments found. Book your first appointment above!</div>';
+                }
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                loadingDiv.style.display = 'none';
+                container.innerHTML = '<div class="no-appointments">Error loading appointments. Please ensure the backend server is running.</div>';
+            }
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-GB', options);
+        }
+
+        // Load appointments when page loads
+        window.addEventListener('DOMContentLoaded', loadAppointments);
     </script>
 </body>
 </html>

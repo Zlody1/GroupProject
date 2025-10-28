@@ -147,6 +147,44 @@ def get_appointment(registration_key):
         print(f"Error retrieving appointment: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@app.route('/api/appointments', methods=['GET'])
+def get_all_appointments():
+    """Get all appointments"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, date, time, registration_plate, vehicle_type, registration_key, created_at
+            FROM appointments
+            ORDER BY date DESC, time DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        appointments = []
+        for row in rows:
+            appointments.append({
+                'id': row[0],
+                'date': row[1],
+                'time': row[2],
+                'registrationPlate': row[3],
+                'vehicleType': row[4],
+                'registrationKey': row[5],
+                'createdAt': row[6]
+            })
+        
+        return jsonify({
+            'success': True,
+            'appointments': appointments,
+            'count': len(appointments)
+        }), 200
+            
+    except Exception as e:
+        print(f"Error retrieving appointments: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
