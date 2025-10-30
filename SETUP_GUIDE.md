@@ -1,10 +1,10 @@
-# MOT Appointment Booking System
+# Recycling Appointment Booking System
 
 ## Overview
 This is a complete appointment booking system with a frontend interface and Flask backend API.
 
 ## Features
-- Book MOT appointments with date, time, registration plate, and vehicle type
+- Book Recycling appointments with date, time, registration plate, and vehicle type
 - Automatic generation of unique registration keys
 - SQLite database for storing appointments
 - Confirmation page displaying appointment details
