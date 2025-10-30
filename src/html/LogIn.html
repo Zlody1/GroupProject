@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Recycling Appointment System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .password-toggle {
+            position: relative;
+        }
+        
+        .password-toggle input {
+            padding-right: 40px;
+        }
+        
+        .toggle-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 15px;
+            color: #666;
+            font-size: 14px;
+            width: auto;
+        }
+        
+        .toggle-btn:hover {
+            color: #4CAF50;
+            background: none;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .remember-me input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+        
+        .remember-me label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .forgot-password {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .login-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background-color: #ddd;
+        }
+        
+        .divider span {
+            background-color: white;
+            padding: 0 15px;
+            position: relative;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .signup-link {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .signup-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background-color: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Login to your recycling appointment account</p>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-toggle">
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-btn" onclick="togglePassword()">Show</button>
+                </div>
+            </div>
+            
+            <div class="remember-forgot">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot Password?</a>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">Login</button>
+            <div class="loading" id="loading">Logging in...</div>
+        </form>
+        
+        <div class="divider">
+            <span>OR</span>
+        </div>
+        
+        <div class="signup-link">
+            Don't have an account? <a href="Registration.html">Create Account</a>
+        </div>
+    </div>
+    
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = 'Hide';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = 'Show';
+            }
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            const loading = document.getElementById('loading');
+            
+            // Hide previous errors
+            errorMessage.classList.remove('show');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            loading.classList.add('show');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        remember: remember
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Store user session
+                    if (remember) {
+                        localStorage.setItem('userEmail', email);
+                        localStorage.setItem('userId', result.userId);
+                    } else {
+                        sessionStorage.setItem('userEmail', email);
+                        sessionStorage.setItem('userId', result.userId);
+                    }
+                    
+                    // Redirect to main page
+                    window.location.href = 'mainPage.html';
+                } else {
+                    // Show error message
+                    errorMessage.textContent = result.error || 'Invalid email or password';
+                    errorMessage.classList.add('show');
+                    loginBtn.disabled = false;
+                    loading.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = 'Network error. Please ensure the backend server is running.';
+                errorMessage.classList.add('show');
+                loginBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        });
+        
+        // Auto-fill email if remembered
+        window.addEventListener('DOMContentLoaded', function() {
+            const rememberedEmail = localStorage.getItem('userEmail');
+            if (rememberedEmail) {
+                document.getElementById('email').value = rememberedEmail;
+                document.getElementById('remember').checked = true;
+            }
+        });
+    </script>
+    <script src="loginPage.js"></script>
+</body>
+</html>

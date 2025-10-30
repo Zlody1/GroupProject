@@ -6,6 +6,7 @@ module.exports = {
     mainPage: './src/typescript/mainPageScript.ts',
     bookAppointmentPage: './src/typescript/bookAppointmentPageScript.ts',
     loginPage: './src/typescript/loginPageScript.ts',
+    registrationPage: './src/typescript/registrationPageScript.ts',
   },
   output: {
     filename: '[name].js',
@@ -37,11 +38,11 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'),
     },
-    historyApiFallback: {
-      rewrites: [
-        { from: /^\/$/, to: '/mainPage.html' },
-      ],
-    },
+    // historyApiFallback: {
+    //   rewrites: [
+    //     { from: /^\/$/, to: '/mainPage.html' },
+    //   ],
+    // },
     proxy: [
       {
         context: ['/api'],
@@ -49,9 +50,9 @@ module.exports = {
         changeOrigin: true,
       },
     ],
-    open: {
-      target: ['mainPage.html'],
-    },
+    // open: {
+    //   target: ['mainPage.html'],
+    // },
     port: 8080,
   },
 };
