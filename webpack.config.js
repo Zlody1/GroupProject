@@ -7,6 +7,7 @@ module.exports = {
     bookAppointmentPage: './src/typescript/bookAppointmentPageScript.ts',
     loginPage: './src/typescript/loginPageScript.ts',
     registrationPage: './src/typescript/registrationPageScript.ts',
+    viewRegistrationPage: './src/typescript/viewRegistrationPageScript.ts',
   },
   output: {
     filename: '[name].js',
