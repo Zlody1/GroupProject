@@ -28,9 +28,20 @@ def init_db():
             registration_plate TEXT NOT NULL,
             vehicle_type TEXT NOT NULL,
             registration_key TEXT UNIQUE NOT NULL,
+            checked_in INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
         )
     ''')
+    # Ensure checked_in column exists for older DBs
+    try:
+        cursor.execute("PRAGMA table_info(appointments)")
+        cols = [r[1] for r in cursor.fetchall()]
+        if 'checked_in' not in cols:
+            cursor.execute('ALTER TABLE appointments ADD COLUMN checked_in INTEGER DEFAULT 0')
+            conn.commit()
+    except Exception as e:
+        print(f"Error ensuring checked_in column: {e}")
     
     conn.commit()
     conn.close()
@@ -119,7 +130,7 @@ def get_appointment(registration_key):
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, registration_key, created_at
+            SELECT id, date, time, registration_plate, vehicle_type, registration_key, checked_in, created_at
             FROM appointments
             WHERE registration_key = ?
         ''', (registration_key,))
@@ -137,7 +148,8 @@ def get_appointment(registration_key):
                     'registrationPlate': row[3],
                     'vehicleType': row[4],
                     'registrationKey': row[5],
-                    'createdAt': row[6]
+                    'checkedIn': bool(row[6]),
+                    'createdAt': row[7]
                 }
             }), 200
         else:
@@ -155,7 +167,7 @@ def get_all_appointments():
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, registration_key, created_at
+            SELECT id, date, time, registration_plate, vehicle_type, registration_key, checked_in, created_at
             FROM appointments
             ORDER BY date DESC, time DESC
         ''')
@@ -172,7 +184,8 @@ def get_all_appointments():
                 'registrationPlate': row[3],
                 'vehicleType': row[4],
                 'registrationKey': row[5],
-                'createdAt': row[6]
+                'checkedIn': bool(row[6]),
+                'createdAt': row[7]
             })
         
         return jsonify({
@@ -183,6 +196,60 @@ def get_all_appointments():
             
     except Exception as e:
         print(f"Error retrieving appointments: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.route('/api/appointments/<identifier>', methods=['DELETE'])
+def delete_appointment(identifier):
+    """Delete an appointment by id (numeric) or registration key (string)"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # If identifier is numeric, treat as id, otherwise treat as registration_key
+        if identifier.isdigit():
+            cursor.execute('DELETE FROM appointments WHERE id = ?', (int(identifier),))
+        else:
+            cursor.execute('DELETE FROM appointments WHERE registration_key = ?', (identifier,))
+
+        conn.commit()
+        deleted = cursor.rowcount
+        conn.close()
+
+        if deleted > 0:
+            return jsonify({'success': True, 'deleted': deleted}), 200
+        else:
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+
+    except Exception as e:
+        print(f"Error deleting appointment: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.route('/api/appointments/<identifier>/checkin', methods=['POST'])
+def checkin_appointment(identifier):
+    """Mark appointment as checked-in. Current behavior: remove the appointment (treated as checked-in)."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Update checked_in flag instead of deleting the row
+        if identifier.isdigit():
+            cursor.execute('UPDATE appointments SET checked_in = 1 WHERE id = ?', (int(identifier),))
+        else:
+            cursor.execute('UPDATE appointments SET checked_in = 1 WHERE registration_key = ?', (identifier,))
+
+        conn.commit()
+        updated = cursor.rowcount
+        conn.close()
+
+        if updated > 0:
+            return jsonify({'success': True, 'checkedIn': True}), 200
+        else:
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+
+    except Exception as e:
+        print(f"Error checking in appointment: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/health', methods=['GET'])
