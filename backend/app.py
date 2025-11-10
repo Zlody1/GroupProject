@@ -4,7 +4,7 @@ import sqlite3
 import secrets
 import string
 from datetime import datetime
-import os
+import os, re
 import qrcode
 from io import BytesIO
 import json
@@ -19,7 +19,20 @@ def init_db():
     """Initialize the database with the appointments table"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
+    cursor.execute('''
+                   CREATE TABLE IF NOT EXISTS users
+                   (
+                       id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                       first_name   TEXT NOT NULL,
+                       last_name    TEXT NOT NULL,
+                       phone_number TEXT NULL,
+                       password     TEXT NOT NULL,
+                       email        TEXT UNIQUE NOT NULL,
+                       created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                   )
+                   ''')
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS appointments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -316,6 +329,74 @@ def generate_qr_code(registration_key):
     except Exception as e:
         print(f"Error generating QR code: {str(e)}")
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@app.route('/api/register', methods=['POST'])
+def register_user():
+
+    try:
+        request_body = request.get_json()
+
+        required_fields = ['firstName', 'lastName', 'email', 'password']
+        for field in required_fields:
+            if field not in request_body:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        first_name = request_body['firstName']
+        last_name = request_body['lastName']
+        email = request_body['email']
+        phone_number = request_body['phone']
+        password = request_body['password']
+
+        if not validate_number(phone_number):
+            return jsonify({'error': f'Invalid phone number: {phone_number}'}), 400
+
+        if not validate_email(email):
+            return jsonify({'error': f'Invalid email: {email}'}), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                           INSERT INTO users (first_name, last_name, phone_number, password, email)
+                           VALUES (?, ?, ?, ?, ?)
+                           ''', (first_name, last_name, phone_number, password, email))
+
+            conn.commit()
+            user_id = cursor.lastrowid
+
+            return jsonify({
+                'success': True,
+                'email': email,
+                'userId': user_id,
+                'message': 'User created successfully'
+            }), 201
+
+        except sqlite3.IntegrityError:
+
+            return jsonify({
+                'success': False,
+                'error': 'Email already registered',
+                'details': 'Email already registered. Please try again with a different email address.'
+            }), 400
+
+        finally:
+            conn.close()
+
+    except Exception as e:
+        print(f"Error creating user: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+
+def validate_number(number):
+    pattern = re.compile(r"^(?:0|\+?44)(?:\d\s?){9,10}$")
+    return number is None or number == '' or bool(pattern.match(re.sub(r'\s+', '', number)))
+
+
+def validate_email(email):
+    pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    return email is None or bool(pattern.match(re.sub(r'\s+', '', email)))
+
 
 if __name__ == '__main__':
     # Initialize database on startup
