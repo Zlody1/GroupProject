@@ -15,6 +15,8 @@ CORS(app)  # Enable CORS for frontend communication
 # Database configuration
 DB_PATH = os.path.join(os.path.dirname(__file__), 'appointments.db')
 
+USERS_DB_PATH = os.path.join(os.path.dirname(__file__), 'users.db')
+
 def init_db():
     """Initialize the database with the appointments table"""
     conn = sqlite3.connect(DB_PATH)
@@ -50,6 +52,27 @@ def init_db():
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_PATH}")
+
+def init_users_db():
+    """Initialize a separate database/table for user accounts"""
+    conn = sqlite3.connect(USERS_DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS useraccounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            firstName TEXT NOT NULL,
+            lastName TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            phonenumber TEXT,
+            password TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+    print(f"Users database initialized at {USERS_DB_PATH}")
 
 def generate_registration_key(length=8):
     """Generate a random alphanumeric registration key"""
