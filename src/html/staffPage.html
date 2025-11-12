@@ -239,13 +239,6 @@
                             </thead>
                             <tbody>
                     `;
-                    
-                    data.appointments.forEach(appointment => {
-                        const vehicleClass = appointment.vehicleType === 'van' ? 'vehicle-van' : 'vehicle-regular';
-                        const vehicleLabel = appointment.vehicleType.charAt(0).toUpperCase() + appointment.vehicleType.slice(1);
-                        const apptId = getAppointmentId(appointment);
-                        const isChecked = appointment.checkedIn === true || appointment.checkedIn === 1;
-                        const plantName = appointment.plantName || 'N/A';
 
             data.appointments.forEach((appointment) => {
               const vehicleClass =
@@ -258,6 +251,7 @@
               const apptId = getAppointmentId(appointment);
               const isChecked =
                 appointment.checkedIn === true || appointment.checkedIn === 1;
+              const plantName = appointment.plantName || "N/A";
 
               tableHTML += `
                             <tr data-appt-id="${apptId}">
@@ -269,7 +263,11 @@
                                 <td><span class="vehicle-badge ${vehicleClass}">${vehicleLabel}</span></td>
                                 <td>${plantName}</td>
                                 <td><code>${appointment.registrationKey}</code></td>
-                                <td class="status-cell"><span class="status-badge ${isChecked ? 'status-checked' : 'status-pending'}">${isChecked ? 'Checked In' : 'Pending'}</span></td>
+                                <td class="status-cell"><span class="status-badge ${
+                                  isChecked ? "status-checked" : "status-pending"
+                                }">${
+                isChecked ? "Checked In" : "Pending"
+              }</span></td>
                                 <td>
                                     <button class="action-btn btn-checkin" onclick="checkInAppointment('${apptId}', this)" ${
                 isChecked ? "disabled" : ""
