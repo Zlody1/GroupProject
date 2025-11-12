@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Recycling Appointment</title>
+    
+    <!-- Leaflet CSS for OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -162,12 +173,45 @@
             padding: 20px;
             color: #666;
         }
+        
+        /* Map styles */
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px solid #ddd;
+        }
+        .map-section {
+            margin-bottom: 30px;
+        }
+        .map-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Book Recycling Appointment</h1>
+        
+        <!-- Map Section -->
+        <div class="map-section">
+            <h2>Recycling Plant Locations</h2>
+            <div id="map"></div>
+        </div>
         <form id="appointmentForm">
+            <div class="form-group">
+                <label for="recyclingPlant">Select Recycling Plant:</label>
+                <select id="recyclingPlant" 
+                        name="recyclingPlant" 
+                        required>
+                    <option value="" disabled selected>Choose a recycling plant...</option>
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+                <div class="error" id="plantError">Please select a recycling plant</div>
+            </div>
+
             <div class="form-group">
                 <label for="date">Appointment Date:</label>
                 <input type="date" id="date" name="date" required>
@@ -209,13 +253,6 @@
             <div class="loading" id="loading">Processing your booking...</div>
             <div class="error" id="generalError"></div>
         </form>
-    </div>
-
-    <!-- Existing Appointments Section -->
-    <div class="appointments-section">
-        <h2>Existing Appointments</h2>
-        <div class="appointments-loading" id="appointmentsLoading">Loading appointments...</div>
-        <div id="appointmentsContainer"></div>
     </div>
     
     <script src="bookAppointmentPage.js"></script>

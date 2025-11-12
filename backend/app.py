@@ -27,6 +27,7 @@ def init_db():
             time TEXT NOT NULL,
             registration_plate TEXT NOT NULL,
             vehicle_type TEXT NOT NULL,
+            plant_name TEXT,
             registration_key TEXT UNIQUE NOT NULL,
             checked_in INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -40,8 +41,11 @@ def init_db():
         if 'checked_in' not in cols:
             cursor.execute('ALTER TABLE appointments ADD COLUMN checked_in INTEGER DEFAULT 0')
             conn.commit()
+        if 'plant_name' not in cols:
+            cursor.execute('ALTER TABLE appointments ADD COLUMN plant_name TEXT')
+            conn.commit()
     except Exception as e:
-        print(f"Error ensuring checked_in column: {e}")
+        print(f"Error ensuring columns: {e}")
     
     conn.commit()
     conn.close()
@@ -60,7 +64,7 @@ def create_appointment():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['date', 'time', 'registrationPlate', 'vehicleType']
+        required_fields = ['date', 'time', 'registrationPlate', 'vehicleType', 'recyclingPlant']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
@@ -69,6 +73,7 @@ def create_appointment():
         time = data['time']
         registration_plate = data['registrationPlate'].upper().strip()
         vehicle_type = data['vehicleType']
+        plant_name = data['recyclingPlant']
         
         # Validate vehicle type
         if vehicle_type not in ['regular', 'van']:
@@ -83,9 +88,9 @@ def create_appointment():
         
         try:
             cursor.execute('''
-                INSERT INTO appointments (date, time, registration_plate, vehicle_type, registration_key)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (date, time, registration_plate, vehicle_type, registration_key))
+                INSERT INTO appointments (date, time, registration_plate, vehicle_type, plant_name, registration_key)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (date, time, registration_plate, vehicle_type, plant_name, registration_key))
             
             conn.commit()
             appointment_id = cursor.lastrowid
@@ -130,7 +135,7 @@ def get_appointment(registration_key):
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, registration_key, checked_in, created_at
+            SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
             FROM appointments
             WHERE registration_key = ?
         ''', (registration_key,))
@@ -147,9 +152,10 @@ def get_appointment(registration_key):
                     'time': row[2],
                     'registrationPlate': row[3],
                     'vehicleType': row[4],
-                    'registrationKey': row[5],
-                    'checkedIn': bool(row[6]),
-                    'createdAt': row[7]
+                    'plantName': row[5],
+                    'registrationKey': row[6],
+                    'checkedIn': bool(row[7]),
+                    'createdAt': row[8]
                 }
             }), 200
         else:
@@ -167,7 +173,7 @@ def get_all_appointments():
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, registration_key, checked_in, created_at
+            SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
             FROM appointments
             ORDER BY date DESC, time DESC
         ''')
@@ -183,9 +189,10 @@ def get_all_appointments():
                 'time': row[2],
                 'registrationPlate': row[3],
                 'vehicleType': row[4],
-                'registrationKey': row[5],
-                'checkedIn': bool(row[6]),
-                'createdAt': row[7]
+                'plantName': row[5],
+                'registrationKey': row[6],
+                'checkedIn': bool(row[7]),
+                'createdAt': row[8]
             })
         
         return jsonify({

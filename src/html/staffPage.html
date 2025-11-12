@@ -224,6 +224,7 @@
                                     <th>Time</th>
                                     <th>Registration</th>
                                     <th>Type</th>
+                                    <th>Plant</th>
                                     <th>Key</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -238,6 +239,7 @@
                         const vehicleLabel = appointment.vehicleType.charAt(0).toUpperCase() + appointment.vehicleType.slice(1);
                         const apptId = getAppointmentId(appointment);
                         const isChecked = appointment.checkedIn === true || appointment.checkedIn === 1;
+                        const plantName = appointment.plantName || 'N/A';
 
                         tableHTML += `
                             <tr data-appt-id="${apptId}">
@@ -245,6 +247,7 @@
                                 <td>${appointment.time}</td>
                                 <td><strong>${appointment.registrationPlate}</strong></td>
                                 <td><span class="vehicle-badge ${vehicleClass}">${vehicleLabel}</span></td>
+                                <td>${plantName}</td>
                                 <td><code>${appointment.registrationKey}</code></td>
                                 <td class="status-cell"><span class="status-badge ${isChecked ? 'status-checked' : 'status-pending'}">${isChecked ? 'Checked In' : 'Pending'}</span></td>
                                 <td>
