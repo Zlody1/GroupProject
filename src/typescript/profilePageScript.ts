@@ -20,6 +20,7 @@ interface Appointment {
 async function loadProfile(): Promise<void> {
     const userEmail = sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail');
     const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true';
 
     const profileContent = document.getElementById('profileContent')!;
 
@@ -86,6 +87,9 @@ async function loadProfile(): Promise<void> {
     }
 
     // User is logged in
+    const backHomeUrl = isAdmin ? 'staffPage.html' : 'mainPage.html';
+    const bookAppointmentButton = isAdmin ? '' : '<a href="bookAppointmentPage.html" class="btn btn-primary">Book Appointment</a>';
+
     profileContent.innerHTML = `
         <div class="profile-section">
             <h2>Account Information</h2>
@@ -100,8 +104,8 @@ async function loadProfile(): Promise<void> {
         ${appointmentsHTML}
 
         <div class="button-group">
-            <a href="mainPage.html" class="btn btn-secondary">Back to Home</a>
-            <a href="bookAppointmentPage.html" class="btn btn-primary">Book Appointment</a>
+            <a href="${backHomeUrl}" class="btn btn-secondary">Back to Home</a>
+            ${bookAppointmentButton}
             <button onclick="logout()" class="btn btn-danger">Log Out</button>
         </div>
     `;

@@ -7,24 +7,33 @@
     <style>
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 900px;
-        margin: 50px auto;
+        margin: 0;
         padding: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
       }
-      .container {
+      .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .hero-section {
         background-color: white;
-        padding: 30px;
+        padding: 40px;
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      }
-      h1 {
-        color: #333;
         text-align: center;
         margin-bottom: 30px;
-        font-size: 2.2rem;
+      }
+      .hero-section h1 {
+        color: #333;
+        margin: 0 0 10px 0;
+        font-size: 2.5rem;
         font-weight: 700;
+      }
+      .hero-section .subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
       }
       .form-group {
         margin-bottom: 20px;
@@ -113,22 +122,54 @@
       .appointments-section {
         background-color: white;
         padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-top: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
       }
-      .appointments-section h2 {
+      .section-header {
+        margin-bottom: 25px;
+      }
+      .section-header h2 {
         color: #333;
-        margin-bottom: 20px;
+        margin: 0 0 20px 0;
         text-align: center;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+      .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 5px;
+      }
+      .stat-label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
       .appointments-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 15px;
       }
-      .appointments-table th {
+      .appointments-table thead {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .appointments-table th {
+        background: none;
         color: white;
         padding: 12px;
         text-align: left;
@@ -171,8 +212,8 @@
         padding: 12px;
         border-bottom: 1px solid #ddd;
       }
-      .appointments-table tr:hover {
-        background-color: #f5f5f5;
+      .appointments-table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.08);
       }
       .vehicle-badge {
         display: inline-block;
@@ -191,18 +232,20 @@
       }
       .status-badge {
         display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: bold;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
       .status-checked {
-        background-color: #e8f5e9;
-        color: #2e7d32;
+        background-color: #4CAF50;
+        color: white;
       }
       .status-pending {
-        background-color: #fff8e1;
-        color: #ff8f00;
+        background-color: #FF9800;
+        color: white;
       }
       .no-appointments {
         text-align: center;
@@ -221,7 +264,7 @@
         right: 20px;
         width: 50px;
         height: 50px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-color: #4CAF50;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -232,8 +275,9 @@
         z-index: 1000;
       }
       .account-icon:hover {
+        background-color: #45a049;
         transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
       }
       .account-icon svg {
         width: 28px;
@@ -250,13 +294,35 @@
       </svg>
     </div>
 
-    <h1>Staff Check in Page</h1>
-    <div class="appointments-section">
-      <h2>Appointments</h2>
-      <div class="appointments-loading" id="appointmentsLoading">
-        Loading appointments...
+    <div class="main-container">
+      <div class="hero-section">
+        <h1>Staff Check-In Page</h1>
+        <p class="subtitle">Manage and check in appointments for all recycling centres</p>
       </div>
-      <div id="appointmentsContainer"></div>
+
+      <div class="appointments-section">
+        <div class="section-header">
+          <h2>Today's Appointments</h2>
+          <div class="stats-container">
+            <div class="stat-card">
+              <div class="stat-number" id="totalAppointments">0</div>
+              <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="checkedInCount">0</div>
+              <div class="stat-label">Checked In</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="pendingCount">0</div>
+              <div class="stat-label">Pending</div>
+            </div>
+          </div>
+        </div>
+        <div class="appointments-loading" id="appointmentsLoading">
+          Loading appointments...
+        </div>
+        <div id="appointmentsContainer"></div>
+      </div>
     </div>
     <script>
       // Load and display all appointments
@@ -275,6 +341,15 @@
             data.appointments &&
             data.appointments.length > 0
           ) {
+            // Update stats
+            const totalCount = data.appointments.length;
+            const checkedIn = data.appointments.filter(a => a.checkedIn).length;
+            const pending = totalCount - checkedIn;
+            
+            document.getElementById('totalAppointments').textContent = totalCount;
+            document.getElementById('checkedInCount').textContent = checkedIn;
+            document.getElementById('pendingCount').textContent = pending;
+
             // Create table
             let tableHTML = `
                         <table class="appointments-table">
@@ -375,9 +450,8 @@
           );
           const result = await resp.json().catch(() => ({}));
           if (resp.ok && (result.success === undefined || result.success)) {
-            // remove row from table if present
-            if (row && row.parentNode) row.parentNode.removeChild(row);
-            else loadAppointments();
+            // Reload appointments to update stats
+            loadAppointments();
           } else {
             const msg =
               result.message ||
@@ -405,19 +479,8 @@
           );
           const result = await resp.json().catch(() => ({}));
           if (resp.ok && (result.success === undefined || result.success)) {
-            // Update UI: mark as checked in and disable the check-in button
-            if (row) {
-              const statusCell = row.querySelector(".status-cell");
-              if (statusCell) {
-                statusCell.innerHTML =
-                  '<span class="status-badge status-checked">Checked In</span>';
-              }
-              if (btn) {
-                btn.disabled = true;
-              }
-            } else {
-              loadAppointments();
-            }
+            // Reload appointments to update stats and UI
+            loadAppointments();
           } else {
             const msg =
               result.message ||
