@@ -54,13 +54,19 @@ document.getElementById('loginForm')!.addEventListener('submit', async function(
             if (remember) {
                 localStorage.setItem('userEmail', email);
                 localStorage.setItem('userId', result.userId);
+                localStorage.setItem('isAdmin', result.isAdmin ? 'true' : 'false');
             } else {
                 sessionStorage.setItem('userEmail', email);
                 sessionStorage.setItem('userId', result.userId);
+                sessionStorage.setItem('isAdmin', result.isAdmin ? 'true' : 'false');
             }
             
-            // Redirect to main page
-            window.location.href = 'mainPage.html';
+            // Redirect based on admin status
+            if (result.isAdmin) {
+                window.location.href = 'staffPage.html';
+            } else {
+                window.location.href = 'mainPage.html';
+            }
         } else {
             // Show error message
             errorMessage.textContent = result.error || 'Invalid email or password';

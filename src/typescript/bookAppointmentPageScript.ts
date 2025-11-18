@@ -167,14 +167,22 @@ document.getElementById('appointmentForm')!.addEventListener('submit', async fun
         return;
     }
 
+    // Get user ID if logged in
+    const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+
     // Prepare data
-    const appointmentData = {
+    const appointmentData: any = {
         date: date,
         time: time,
         registrationPlate: registrationPlate,
         vehicleType: vehicleType,
         recyclingPlant: recyclingPlant
     };
+
+    // Add userId if user is logged in
+    if (userId) {
+        appointmentData.userId = userId;
+    }
 
     // Show loading state
     const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;

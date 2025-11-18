@@ -6,22 +6,25 @@
     <title>Staff Page</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         max-width: 900px;
         margin: 50px auto;
         padding: 20px;
-        background-color: #f5f5f5;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
       }
       .container {
         background-color: white;
         padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
       }
       h1 {
         color: #333;
         text-align: center;
         margin-bottom: 30px;
+        font-size: 2.2rem;
+        font-weight: 700;
       }
       .form-group {
         margin-bottom: 20px;
@@ -71,17 +74,19 @@
       button {
         width: 100%;
         padding: 14px;
-        background-color: #4caf50;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 50px;
         font-size: 16px;
         font-weight: bold;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
       }
       button:hover {
-        background-color: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
       }
       button:disabled {
         background-color: #cccccc;
@@ -123,27 +128,44 @@
         margin-top: 15px;
       }
       .appointments-table th {
-        background-color: #4caf50;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 12px;
         text-align: left;
         font-weight: bold;
       }
       .action-btn {
-        padding: 6px 10px;
-        border-radius: 4px;
+        padding: 8px 16px;
+        border-radius: 25px;
         border: none;
         cursor: pointer;
         font-size: 13px;
         margin-right: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
       .btn-delete {
-        background-color: #e53935;
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
         color: white;
       }
+      .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+      }
       .btn-checkin {
-        background-color: #1976d2;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
+      }
+      .btn-checkin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+      .btn-checkin:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
       }
       .appointments-table td {
         padding: 12px;
@@ -193,9 +215,41 @@
         padding: 20px;
         color: #666;
       }
+      .account-icon {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+      .account-icon:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+      }
+      .account-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: white;
+      }
     </style>
   </head>
   <body>
+    <!-- Account Icon -->
+    <div class="account-icon" onclick="window.location.href='profilePage.html'" title="Profile">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+    </div>
+
     <h1>Staff Check in Page</h1>
     <div class="appointments-section">
       <h2>Appointments</h2>

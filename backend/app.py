@@ -31,6 +31,7 @@ def init_db():
                        phone_number TEXT NULL,
                        password     TEXT NOT NULL,
                        email        TEXT UNIQUE NOT NULL,
+                       is_admin     INTEGER DEFAULT 0,
                        created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                    )
                    ''')
@@ -38,6 +39,7 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS appointments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
             registration_plate TEXT NOT NULL,
@@ -45,11 +47,11 @@ def init_db():
             plant_name TEXT,
             registration_key TEXT UNIQUE NOT NULL,
             checked_in INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
-    # Ensure checked_in column exists for older DBs
+    # Ensure columns exist for older DBs
     try:
         cursor.execute("PRAGMA table_info(appointments)")
         cols = [r[1] for r in cursor.fetchall()]
@@ -59,8 +61,34 @@ def init_db():
         if 'plant_name' not in cols:
             cursor.execute('ALTER TABLE appointments ADD COLUMN plant_name TEXT')
             conn.commit()
+        if 'user_id' not in cols:
+            cursor.execute('ALTER TABLE appointments ADD COLUMN user_id INTEGER')
+            conn.commit()
     except Exception as e:
         print(f"Error ensuring columns: {e}")
+    
+    # Ensure is_admin column exists in users table
+    try:
+        cursor.execute("PRAGMA table_info(users)")
+        cols = [r[1] for r in cursor.fetchall()]
+        if 'is_admin' not in cols:
+            cursor.execute('ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0')
+            conn.commit()
+    except Exception as e:
+        print(f"Error ensuring is_admin column: {e}")
+    
+    # Create admin account if it doesn't exist
+    try:
+        cursor.execute("SELECT id FROM users WHERE email = 'admin@recycling.com'")
+        if not cursor.fetchone():
+            cursor.execute('''
+                INSERT INTO users (first_name, last_name, phone_number, password, email, is_admin)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', ('Admin', 'User', '', '6666', 'admin@recycling.com', 1))
+            conn.commit()
+            print("Admin account created: admin@recycling.com / 6666")
+    except Exception as e:
+        print(f"Error creating admin account: {e}")
     
     conn.commit()
     conn.close()
@@ -110,6 +138,7 @@ def create_appointment():
         registration_plate = data['registrationPlate'].upper().strip()
         vehicle_type = data['vehicleType']
         plant_name = data['recyclingPlant']
+        user_id = data.get('userId')  # Optional user_id
         
         # Validate vehicle type
         if vehicle_type not in ['regular', 'van']:
@@ -124,9 +153,9 @@ def create_appointment():
         
         try:
             cursor.execute('''
-                INSERT INTO appointments (date, time, registration_plate, vehicle_type, plant_name, registration_key)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (date, time, registration_plate, vehicle_type, plant_name, registration_key))
+                INSERT INTO appointments (user_id, date, time, registration_plate, vehicle_type, plant_name, registration_key)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, date, time, registration_plate, vehicle_type, plant_name, registration_key))
             
             conn.commit()
             appointment_id = cursor.lastrowid
@@ -203,16 +232,28 @@ def get_appointment(registration_key):
 
 @app.route('/api/appointments', methods=['GET'])
 def get_all_appointments():
-    """Get all appointments"""
+    """Get all appointments or appointments for a specific user"""
     try:
+        user_id = request.args.get('userId')
+        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
-            FROM appointments
-            ORDER BY date DESC, time DESC
-        ''')
+        if user_id:
+            # Get appointments for specific user
+            cursor.execute('''
+                SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
+                FROM appointments
+                WHERE user_id = ?
+                ORDER BY date DESC, time DESC
+            ''', (user_id,))
+        else:
+            # Get all appointments
+            cursor.execute('''
+                SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
+                FROM appointments
+                ORDER BY date DESC, time DESC
+            ''')
         
         rows = cursor.fetchall()
         conn.close()
@@ -415,6 +456,57 @@ def register_user():
 
     except Exception as e:
         print(f"Error creating user: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+
+@app.route('/api/login', methods=['POST'])
+def login_user():
+    """Handle user login"""
+    try:
+        request_body = request.get_json()
+
+        required_fields = ['email', 'password']
+        for field in required_fields:
+            if field not in request_body:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        email = request_body['email']
+        password = request_body['password']
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                SELECT id, email, first_name, last_name, is_admin
+                FROM users
+                WHERE email = ? AND password = ?
+            ''', (email, password))
+
+            user = cursor.fetchone()
+
+            if user:
+                return jsonify({
+                    'success': True,
+                    'userId': user[0],
+                    'email': user[1],
+                    'firstName': user[2],
+                    'lastName': user[3],
+                    'isAdmin': bool(user[4]),
+                    'message': 'Login successful'
+                }), 200
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid credentials',
+                    'details': 'Email or password is incorrect'
+                }), 401
+
+        finally:
+            conn.close()
+
+    except Exception as e:
+        print(f"Error during login: {str(e)}")
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 

@@ -8,6 +8,7 @@ module.exports = {
     loginPage: './src/typescript/loginPageScript.ts',
     registrationPage: './src/typescript/registrationPageScript.ts',
     viewRegistrationPage: './src/typescript/viewRegistrationPageScript.ts',
+    profilePage: './src/typescript/profilePageScript.ts',
   },
   output: {
     filename: '[name].js',
