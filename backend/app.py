@@ -17,11 +17,13 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'appointments.db')
 
 USERS_DB_PATH = os.path.join(os.path.dirname(__file__), 'users.db')
 
+
 def init_db():
-    """Initialize the database with the appointments table"""
+    """Initialize the database with the appointments and users table"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    # Users table (used by /api/register and /api/login)
     cursor.execute('''
                    CREATE TABLE IF NOT EXISTS users
                    (
@@ -35,21 +37,22 @@ def init_db():
                    )
                    ''')
 
+    # Appointments table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS appointments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            registration_plate TEXT NOT NULL,
-            vehicle_type TEXT NOT NULL,
-            plant_name TEXT,
-            registration_key TEXT UNIQUE NOT NULL,
-            checked_in INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                   CREATE TABLE IF NOT EXISTS appointments (
+                                                               id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                               date TEXT NOT NULL,
+                                                               time TEXT NOT NULL,
+                                                               registration_plate TEXT NOT NULL,
+                                                               vehicle_type TEXT NOT NULL,
+                                                               plant_name TEXT,
+                                                               registration_key TEXT UNIQUE NOT NULL,
+                                                               checked_in INTEGER DEFAULT 0,
+                                                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                   )
+                   ''')
 
-        )
-    ''')
-    # Ensure checked_in column exists for older DBs
+    # Ensure checked_in / plant_name columns exist for older DBs
     try:
         cursor.execute("PRAGMA table_info(appointments)")
         cols = [r[1] for r in cursor.fetchall()]
@@ -61,107 +64,109 @@ def init_db():
             conn.commit()
     except Exception as e:
         print(f"Error ensuring columns: {e}")
-    
+
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_PATH}")
 
+
 def init_users_db():
-    """Initialize a separate database/table for user accounts"""
+    """Unused: older separate user DB; kept for compatibility if needed."""
     conn = sqlite3.connect(USERS_DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS useraccounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            firstName TEXT NOT NULL,
-            lastName TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            phonenumber TEXT,
-            password TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+                   CREATE TABLE IF NOT EXISTS useraccounts (
+                                                               id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                               firstName TEXT NOT NULL,
+                                                               lastName TEXT NOT NULL,
+                                                               email TEXT UNIQUE NOT NULL,
+                                                               phonenumber TEXT,
+                                                               password TEXT NOT NULL,
+                                                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                   )
+                   ''')
 
     conn.commit()
     conn.close()
     print(f"Users database initialized at {USERS_DB_PATH}")
+
 
 def generate_registration_key(length=8):
     """Generate a random alphanumeric registration key"""
     characters = string.ascii_uppercase + string.digits
     return ''.join(secrets.choice(characters) for _ in range(length))
 
+
 @app.route('/api/appointments', methods=['POST'])
 def create_appointment():
     """Create a new appointment and return a registration key"""
     try:
-        # Get data from request
         data = request.get_json()
-        
+
         # Validate required fields
         required_fields = ['date', 'time', 'registrationPlate', 'vehicleType', 'recyclingPlant']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
-        
+
         date = data['date']
         time = data['time']
         registration_plate = data['registrationPlate'].upper().strip()
         vehicle_type = data['vehicleType']
         plant_name = data['recyclingPlant']
-        
+
         # Validate vehicle type
         if vehicle_type not in ['regular', 'van']:
             return jsonify({'error': 'Invalid vehicle type'}), 400
-        
+
         # Generate unique registration key
         registration_key = generate_registration_key()
-        
-        # Save to database
+
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        
+
         try:
             cursor.execute('''
-                INSERT INTO appointments (date, time, registration_plate, vehicle_type, plant_name, registration_key)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (date, time, registration_plate, vehicle_type, plant_name, registration_key))
-            
+                           INSERT INTO appointments (date, time, registration_plate, vehicle_type, plant_name, registration_key)
+                           VALUES (?, ?, ?, ?, ?, ?)
+                           ''', (date, time, registration_plate, vehicle_type, plant_name, registration_key))
+
             conn.commit()
             appointment_id = cursor.lastrowid
-            
+
             return jsonify({
                 'success': True,
                 'registrationKey': registration_key,
                 'appointmentId': appointment_id,
                 'message': 'Appointment created successfully'
             }), 201
-            
+
         except sqlite3.IntegrityError:
             # In case of duplicate key (very unlikely), generate a new one
             conn.rollback()
             registration_key = generate_registration_key(10)  # Use longer key
             cursor.execute('''
-                INSERT INTO appointments (date, time, registration_plate, vehicle_type, registration_key)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (date, time, registration_plate, vehicle_type, registration_key))
+                           INSERT INTO appointments (date, time, registration_plate, vehicle_type, plant_name, registration_key)
+                           VALUES (?, ?, ?, ?, ?, ?)
+                           ''', (date, time, registration_plate, vehicle_type, plant_name, registration_key))
             conn.commit()
             appointment_id = cursor.lastrowid
-            
+
             return jsonify({
                 'success': True,
                 'registrationKey': registration_key,
                 'appointmentId': appointment_id,
                 'message': 'Appointment created successfully'
             }), 201
-            
+
         finally:
             conn.close()
-            
+
     except Exception as e:
         print(f"Error creating appointment: {str(e)}")
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
 
 @app.route('/api/appointments/<registration_key>', methods=['GET'])
 def get_appointment(registration_key):
@@ -169,16 +174,16 @@ def get_appointment(registration_key):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
-            FROM appointments
-            WHERE registration_key = ?
-        ''', (registration_key,))
-        
+                       SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
+                       FROM appointments
+                       WHERE registration_key = ?
+                       ''', (registration_key,))
+
         row = cursor.fetchone()
         conn.close()
-        
+
         if row:
             return jsonify({
                 'success': True,
@@ -196,10 +201,11 @@ def get_appointment(registration_key):
             }), 200
         else:
             return jsonify({'error': 'Appointment not found'}), 404
-            
+
     except Exception as e:
         print(f"Error retrieving appointment: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @app.route('/api/appointments', methods=['GET'])
 def get_all_appointments():
@@ -207,16 +213,16 @@ def get_all_appointments():
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
-            FROM appointments
-            ORDER BY date DESC, time DESC
-        ''')
-        
+                       SELECT id, date, time, registration_plate, vehicle_type, plant_name, registration_key, checked_in, created_at
+                       FROM appointments
+                       ORDER BY date DESC, time DESC
+                       ''')
+
         rows = cursor.fetchall()
         conn.close()
-        
+
         appointments = []
         for row in rows:
             appointments.append({
@@ -230,13 +236,13 @@ def get_all_appointments():
                 'checkedIn': bool(row[7]),
                 'createdAt': row[8]
             })
-        
+
         return jsonify({
             'success': True,
             'appointments': appointments,
             'count': len(appointments)
         }), 200
-            
+
     except Exception as e:
         print(f"Error retrieving appointments: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
@@ -271,7 +277,7 @@ def delete_appointment(identifier):
 
 @app.route('/api/appointments/<identifier>/checkin', methods=['POST'])
 def checkin_appointment(identifier):
-    """Mark appointment as checked-in. Current behavior: remove the appointment (treated as checked-in)."""
+    """Mark appointment as checked-in."""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -295,32 +301,32 @@ def checkin_appointment(identifier):
         print(f"Error checking in appointment: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'ok', 'message': 'Backend is running'}), 200
 
+
 @app.route('/api/bookings-qr/<registration_key>.png', methods=['GET'])
 def generate_qr_code(registration_key):
     """Generate QR code for appointment on-the-fly"""
     try:
-        # Retrieve appointment data from database
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            SELECT id, date, time, registration_plate, vehicle_type, registration_key, created_at
-            FROM appointments
-            WHERE registration_key = ?
-        ''', (registration_key,))
-        
+                       SELECT id, date, time, registration_plate, vehicle_type, registration_key, created_at
+                       FROM appointments
+                       WHERE registration_key = ?
+                       ''', (registration_key,))
+
         row = cursor.fetchone()
         conn.close()
-        
+
         if not row:
             return jsonify({'error': 'Appointment not found'}), 404
-        
-        # Prepare QR code data with all appointment fields
+
         qr_data = {
             'appointmentId': row[0],
             'date': row[1],
@@ -331,38 +337,34 @@ def generate_qr_code(registration_key):
             'bookedAt': row[6],
             'qrGeneratedAt': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
-        
-        # Convert to JSON string for QR code
+
         qr_content = json.dumps(qr_data, indent=2)
-        
-        # Generate QR code
+
         qr = qrcode.QRCode(
-            version=1,  # Auto-adjust size
+            version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
             box_size=10,
             border=4,
         )
         qr.add_data(qr_content)
         qr.make(fit=True)
-        
-        # Create image
+
         img = qr.make_image(fill_color="black", back_color="white")
-        
-        # Save to BytesIO buffer
+
         img_io = BytesIO()
         img.save(img_io, 'PNG')
         img_io.seek(0)
-        
-        # Return image as response
+
         return send_file(img_io, mimetype='image/png')
-        
+
     except Exception as e:
         print(f"Error generating QR code: {str(e)}")
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
+
 @app.route('/api/register', methods=['POST'])
 def register_user():
-
+    """Register a new user account"""
     try:
         request_body = request.get_json()
 
@@ -374,7 +376,7 @@ def register_user():
         first_name = request_body['firstName']
         last_name = request_body['lastName']
         email = request_body['email']
-        phone_number = request_body['phone']
+        phone_number = request_body.get('phone')
         password = request_body['password']
 
         if not validate_number(phone_number):
@@ -403,7 +405,6 @@ def register_user():
             }), 201
 
         except sqlite3.IntegrityError:
-
             return jsonify({
                 'success': False,
                 'error': 'Email already registered',
@@ -416,6 +417,53 @@ def register_user():
     except Exception as e:
         print(f"Error creating user: {str(e)}")
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+
+@app.route('/api/login', methods=['POST'])
+def login_user():
+    """Authenticate a user by email + password"""
+    try:
+        data = request.get_json()
+
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({'success': False, 'error': 'Email and password are required'}), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                       SELECT id, first_name, last_name, email, password
+                       FROM users
+                       WHERE email = ?
+                       ''', (email,))
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
+
+        user_id, first_name, last_name, stored_email, stored_password = row
+
+        # NOTE: passwords are stored in plain text in this coursework example.
+        # In a real application, always hash and verify securely.
+        if password != stored_password:
+            return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
+
+        return jsonify({
+            'success': True,
+            'message': 'Login successful',
+            'userId': user_id,
+            'firstName': first_name,
+            'lastName': last_name,
+            'email': stored_email
+        }), 200
+
+    except Exception as e:
+        print(f"Error logging in user: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error', 'details': str(e)}), 500
 
 
 def validate_number(number):
@@ -431,7 +479,7 @@ def validate_email(email):
 if __name__ == '__main__':
     # Initialize database on startup
     init_db()
-    
+
     # Run the Flask app
     print("Starting Flask server on http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
